@@ -30,7 +30,7 @@ chmod +x bootstrap-cluster.sh
 
 Defaults (override via env vars):
 
-- `VM_NAME` (default: `sdp-lab`)
+- `VM_NAME` (default: `k8s-lab`)
 - `CPUS` (default: `6`)
 - `MEMORY` in GiB (default: `10`)
 - `DISK` in GiB (default: `60`)
@@ -39,29 +39,29 @@ Defaults (override via env vars):
 Example:
 
 ```bash
-VM_NAME=sdp-lab CPUS=4 MEMORY=8 DISK=40 ./rebuild-lab.sh
+VM_NAME=k8s-lab CPUS=4 MEMORY=8 DISK=40 ./rebuild-lab.sh
 ```
 
 ## Validate kubeadm inside the VM
 
 ```bash
-limactl shell sdp-lab kubeadm version
+limactl shell k8s-lab kubeadm version
 ```
 
 ## Host kubectl (after bootstrap)
 
-The bootstrap script writes a kubeconfig to `~/.kube/lima-sdp-lab` that expects the API server at `https://127.0.0.1:6443`.
+The bootstrap script writes a kubeconfig to `~/.kube/lima-k8s-lab` that expects the API server at `https://127.0.0.1:6443`.
 
 Start the tunnel in another terminal:
 
 ```bash
-ssh -F "$HOME/.lima/sdp-lab/ssh.config" -N -L 6443:127.0.0.1:6443 lima-sdp-lab
+ssh -F "$HOME/.lima/k8s-lab/ssh.config" -N -L 6443:127.0.0.1:6443 lima-k8s-lab
 ```
 
 Then use kubectl:
 
 ```bash
-export KUBECONFIG=~/.kube/lima-sdp-lab
+export KUBECONFIG=~/.kube/lima-k8s-lab
 kubectl get nodes
 ```
 
@@ -70,19 +70,19 @@ kubectl get nodes
 1. Ensure the VM is running:
 
 ```bash
-limactl start sdp-lab
+limactl start k8s-lab
 ```
 
 2. Start (or keep running) the API tunnel in a separate terminal:
 
 ```bash
-ssh -F "$HOME/.lima/sdp-lab/ssh.config" -N -L 6443:127.0.0.1:6443 lima-sdp-lab
+ssh -F "$HOME/.lima/k8s-lab/ssh.config" -N -L 6443:127.0.0.1:6443 lima-k8s-lab
 ```
 
 3. In another terminal, use `kubectl` from your Mac:
 
 ```bash
-export KUBECONFIG="$HOME/.kube/lima-sdp-lab"
+export KUBECONFIG="$HOME/.kube/lima-k8s-lab"
 kubectl get nodes
 ```
 
@@ -101,7 +101,7 @@ Username is `admin`.
 To print the initial admin password:
 
 ```bash
-export KUBECONFIG="$HOME/.kube/lima-sdp-lab"
+export KUBECONFIG="$HOME/.kube/lima-k8s-lab"
 kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 --decode
 
@@ -135,7 +135,7 @@ cd gitops-lab
 3. Point Argo CD at that repo by setting `spec.source.repoURL` in `bootstrap/argocd/root-app.yaml`, then apply it:
 
 ```bash
-export KUBECONFIG="$HOME/.kube/lima-sdp-lab"
+export KUBECONFIG="$HOME/.kube/lima-k8s-lab"
 kubectl apply -f bootstrap/argocd/root-app.yaml
 kubectl -n argocd get applications
 ```

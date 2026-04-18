@@ -15,7 +15,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-VM_NAME="${VM_NAME:-sdp-lab}"
+VM_NAME="${VM_NAME:-k8s-lab}"
 POD_CIDR="${POD_CIDR:-10.244.0.0/16}"
 CILIUM_VERSION="${CILIUM_VERSION:-latest}"
 INSTALL_ARGOCD="${INSTALL_ARGOCD:-true}"

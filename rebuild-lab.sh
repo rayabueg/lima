@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-VM_NAME="${VM_NAME:-sdp-lab}"
+VM_NAME="${VM_NAME:-k8s-lab}"
 TEMPLATE="${TEMPLATE:-template:ubuntu-24.04}"
 CPUS="${CPUS:-6}"
 MEMORY="${MEMORY:-10}" # GiB
