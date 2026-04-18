@@ -1,0 +1,11 @@
+.DS_Store
+*.swp
+*.swo
+*.tmp
+
+# editor
+.vscode/
+
+# local artifacts (should never be committed)
+*.tar.gz
+*.log
