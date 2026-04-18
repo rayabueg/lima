@@ -15,8 +15,8 @@ brew install lima
 From the repo root:
 
 ```bash
-chmod +x lima/rebuild-lab.sh
-./lima/rebuild-lab.sh
+chmod +x rebuild-lab.sh
+./rebuild-lab.sh
 ```
 
 ## Bootstrap the cluster (kubeadm + Cilium + ArgoCD)
@@ -24,8 +24,8 @@ chmod +x lima/rebuild-lab.sh
 This initializes the control-plane, installs Cilium CNI, optionally installs ArgoCD, and exports a host kubeconfig.
 
 ```bash
-chmod +x lima/bootstrap-cluster.sh
-./lima/bootstrap-cluster.sh
+chmod +x bootstrap-cluster.sh
+./bootstrap-cluster.sh
 ```
 
 Defaults (override via env vars):
@@ -39,7 +39,7 @@ Defaults (override via env vars):
 Example:
 
 ```bash
-VM_NAME=sdp-lab CPUS=4 MEMORY=8 DISK=40 ./lima/rebuild-lab.sh
+VM_NAME=sdp-lab CPUS=4 MEMORY=8 DISK=40 ./rebuild-lab.sh
 ```
 
 ## Validate kubeadm inside the VM
