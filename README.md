@@ -139,3 +139,34 @@ export KUBECONFIG="$HOME/.kube/lima-k8s-lab"
 kubectl apply -f bootstrap/argocd/root-app.yaml
 kubectl -n argocd get applications
 ```
+
+## Contributing
+
+This folder is part of a public repo, so the default contribution model is **fork → branch → PR**.
+If you’d like to contribute regularly, the repo owner can add you as a collaborator, but PRs are still preferred for review.
+
+### What to change
+
+- Keep the bootstrap flow **idempotent** where possible (safe to re-run).
+- Avoid committing secrets, tokens, or kubeconfigs.
+- Prefer small, focused changes (one behavior change per PR).
+
+### Suggested validation
+
+At minimum, ensure scripts still parse and the help path works:
+
+```bash
+bash -n provision-kubeadm.sh bootstrap-cluster.sh rebuild-lab.sh
+```
+
+If you can, validate end-to-end by rebuilding the VM and bootstrapping from scratch:
+
+```bash
+./rebuild-lab.sh
+./bootstrap-cluster.sh
+```
+
+### Commit messages
+
+- Format: `scope: summary`
+- Examples: `lima: pin k8s pkgs to v1.30`, `bootstrap: make argo install optional`, `docs: clarify tunnel steps`
