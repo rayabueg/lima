@@ -114,8 +114,7 @@ Stop the tunnel / port-forward with Ctrl-C.
 
 ## Using this with the GitOps repo (Argo CD)
 
-This `lima/` folder is meant to be shared as a **bootstrap repo** (VM + kubeadm + CNI + Argo CD).
-Your GitOps state (Argo CD `Application`s, addons, gateway resources, etc.) should stay in a **separate repo** (like `gitops-lab`).
+This `lima/` folder is a submodule of `k8s-lab`. The GitOps state (Argo CD `Application`s, addons, gateway resources, etc.) lives in the `cluster-addons/` submodule.
 
 Typical flow:
 
@@ -125,18 +124,11 @@ Typical flow:
 ./bootstrap-cluster.sh
 ```
 
-2. Clone your GitOps repo (example):
-
-```bash
-git clone https://github.com/<you>/gitops-lab.git
-cd gitops-lab
-```
-
-3. Point Argo CD at that repo by setting `spec.source.repoURL` in `bootstrap/argocd/root-app.yaml`, then apply it:
+2. From the `k8s-lab` repo root, apply the root app (update `spec.source.repoURL` first if using a fork):
 
 ```bash
 export KUBECONFIG="$HOME/.kube/lima-k8s-lab"
-kubectl apply -f bootstrap/argocd/root-app.yaml
+kubectl apply -f cluster-addons/bootstrap/argocd/root-app.yaml
 kubectl -n argocd get applications
 ```
 
