@@ -124,13 +124,16 @@ Typical flow:
 ./bootstrap-cluster.sh
 ```
 
-2. From the `k8s-lab` repo root, apply the root app (update `spec.source.repoURL` first if using a fork):
+2. From the `k8s-lab` repo root, apply both root apps (update `spec.source.repoURL` in each file first if using a fork):
 
 ```bash
 export KUBECONFIG="$HOME/.kube/lima-k8s-lab"
 kubectl apply -f cluster-addons/bootstrap/argocd/root-app.yaml
+kubectl apply -f cluster-applications/bootstrap/argocd/root-app.yaml
 kubectl -n argocd get applications
 ```
+
+`k8s-lab-root` manages cluster infra/addons; `cluster-applications` manages user-facing apps. Both sync automatically on every commit to their respective repos.
 
 ## Contributing
 
