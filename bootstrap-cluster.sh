@@ -120,7 +120,8 @@ log "Installing Cilium CNI"
 if kubectl -n kube-system get daemonset cilium >/dev/null 2>&1; then
   log "Cilium already installed; skipping install"
 else
-  cilium install
+  # cni-exclusive=false allows Cilium to coexist with Istio CNI (Ambient mode)
+  cilium install --set cni.exclusive=false
 fi
 cilium status --wait
 
