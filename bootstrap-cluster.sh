@@ -118,7 +118,13 @@ fi
 
 log "Installing Cilium CNI"
 if kubectl -n kube-system get daemonset cilium >/dev/null 2>&1; then
-  log "Cilium already installed; skipping install"
+  log "Cilium already installed; ensuring cni-exclusive=false"
+  # Idempotent: only patch + restart if the value is wrong (e.g. after a VM resume)
+  if [[ "$(kubectl get configmap cilium-config -n kube-system -o jsonpath='{.data.cni-exclusive}' 2>/dev/null)" != "false" ]]; then
+    kubectl patch configmap cilium-config -n kube-system --type merge -p '{"data":{"cni-exclusive":"false"}}'
+    kubectl rollout restart daemonset/cilium -n kube-system
+    kubectl rollout status daemonset/cilium -n kube-system --timeout=120s
+  fi
 else
   # cni-exclusive=false allows Cilium to coexist with Istio CNI (Ambient mode)
   cilium install --set cni.exclusive=false
