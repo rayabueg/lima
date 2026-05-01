@@ -1,167 +1,40 @@
-# Lima-based Ubuntu 24.04 + kubeadm VM
+# bootstrap
 
-This folder is an alternative to the `multipass/` flow. It uses **Lima** to run an **Ubuntu 24.04** VM and installs **containerd + kubelet/kubeadm/kubectl** so the VM can run `kubeadm`.
+VM management and cluster bootstrap scripts, organised by VM manager.
 
-## Prereqs
+Pick the subfolder that matches your workstation OS:
 
-Install Lima:
+| Folder | VM manager | Host OS |
+|---|---|---|
+| [`lima/`](lima/) | [Lima](https://lima-vm.io) | macOS |
+| [`multipass/`](multipass/) | [Multipass](https://multipass.run) | Ubuntu / Linux (also macOS) |
+
+## Shared scripts
+
+[`shared/`](shared/) contains scripts that run **inside the VM** and are identical regardless of which VM manager you use:
+
+| Script | Purpose |
+|---|---|
+| `shared/provision-kubeadm.sh` | Install containerd, kubelet, kubeadm, kubectl (run as root in the VM) |
+| `shared/bootstrap-cluster.sh` | `kubeadm init` + Cilium CNI + ArgoCD (run as the normal user in the VM) |
+
+These are called automatically by the `rebuild-lab.sh` and `bootstrap-cluster.sh` scripts in each subdirectory — you do not run them directly.
+
+## Quickstart
 
 ```bash
-brew install lima
+# macOS
+cd lima && ./rebuild-lab.sh && ./bootstrap-cluster.sh
+
+# Ubuntu / Linux
+cd multipass && ./rebuild-lab.sh && ./bootstrap-cluster.sh
 ```
 
-## Create (or rebuild) the VM
-
-From the repo root:
+After bootstrapping, apply the GitOps root apps from the repo root:
 
 ```bash
-chmod +x rebuild-lab.sh
-./rebuild-lab.sh
-```
-
-## Bootstrap the cluster (kubeadm + Cilium + ArgoCD)
-
-This initializes the control-plane, installs Cilium CNI, optionally installs ArgoCD, and exports a host kubeconfig.
-
-```bash
-chmod +x bootstrap-cluster.sh
-./bootstrap-cluster.sh
-```
-
-Defaults (override via env vars):
-
-- `VM_NAME` (default: `k8s-lab`)
-- `CPUS` (default: `6`)
-- `MEMORY` in GiB (default: `10`)
-- `DISK` in GiB (default: `60`)
-- `TEMPLATE` (default: `template:ubuntu-24.04`)
-
-Example:
-
-```bash
-VM_NAME=k8s-lab CPUS=4 MEMORY=8 DISK=40 ./rebuild-lab.sh
-```
-
-## Validate kubeadm inside the VM
-
-```bash
-limactl shell k8s-lab kubeadm version
-```
-
-## Host kubectl (after bootstrap)
-
-The bootstrap script writes a kubeconfig to `~/.kube/lima-k8s-lab` that expects the API server at `https://127.0.0.1:6443`.
-
-Start the tunnel in another terminal:
-
-```bash
-ssh -F "$HOME/.lima/k8s-lab/ssh.config" -N -L 6443:127.0.0.1:6443 lima-k8s-lab
-```
-
-Then use kubectl:
-
-```bash
-export KUBECONFIG=~/.kube/lima-k8s-lab
-kubectl get nodes
-```
-
-## Startup procedure (daily use)
-
-1. Ensure the VM is running:
-
-```bash
-limactl start k8s-lab
-```
-
-2. Start (or keep running) the API tunnel in a separate terminal:
-
-```bash
-ssh -F "$HOME/.lima/k8s-lab/ssh.config" -N -L 6443:127.0.0.1:6443 lima-k8s-lab
-```
-
-3. In another terminal, use `kubectl` from your Mac:
-
-```bash
-export KUBECONFIG="$HOME/.kube/lima-k8s-lab"
-kubectl get nodes
-```
-
-4. (Optional) Port-forward the Argo CD UI in another terminal:
-
-```bash
-kubectl -n argocd port-forward svc/argocd-server 8080:443
-```
-
-Then open `https://localhost:8080`.
-
-### Argo CD admin login
-
-Username is `admin`.
-
-To print the initial admin password:
-
-```bash
-export KUBECONFIG="$HOME/.kube/lima-k8s-lab"
-kubectl -n argocd get secret argocd-initial-admin-secret \
-  -o jsonpath="{.data.password}" | base64 --decode
-
-echo
-```
-
-If that secret doesn’t exist, the initial password has likely been rotated/removed after first login. In that case, you’ll need to reset the admin password (or use whatever password you previously set).
-
-Stop the tunnel / port-forward with Ctrl-C.
-
-## Using this with the GitOps repo (Argo CD)
-
-This `lima/` folder is a submodule of `k8s-lab`. The GitOps state (Argo CD `Application`s, addons, gateway resources, etc.) lives in the `cluster-addons/` submodule.
-
-Typical flow:
-
-1. Bootstrap the cluster + Argo CD:
-
-```bash
-./bootstrap-cluster.sh
-```
-
-2. From the `k8s-lab` repo root, apply both root apps (update `spec.source.repoURL` in each file first if using a fork):
-
-```bash
-export KUBECONFIG="$HOME/.kube/lima-k8s-lab"
 kubectl apply -f cluster-addons/bootstrap/argocd/root-app.yaml
 kubectl apply -f cluster-applications/bootstrap/argocd/root-app.yaml
-kubectl -n argocd get applications
 ```
 
-`k8s-lab-root` manages cluster infra/addons; `cluster-applications` manages user-facing apps. Both sync automatically on every commit to their respective repos.
-
-## Contributing
-
-This folder is part of a public repo, so the default contribution model is **fork → branch → PR**.
-If you’d like to contribute regularly, the repo owner can add you as a collaborator, but PRs are still preferred for review.
-
-### What to change
-
-- Keep the bootstrap flow **idempotent** where possible (safe to re-run).
-- Avoid committing secrets, tokens, or kubeconfigs.
-- Prefer small, focused changes (one behavior change per PR).
-
-### Suggested validation
-
-At minimum, ensure scripts still parse and the help path works:
-
-```bash
-bash -n provision-kubeadm.sh bootstrap-cluster.sh rebuild-lab.sh
-```
-
-If you can, validate end-to-end by rebuilding the VM and bootstrapping from scratch:
-
-```bash
-./rebuild-lab.sh
-./bootstrap-cluster.sh
-```
-
-### Commit messages
-
-- Format: `scope: summary`
-- Examples: `lima: pin k8s pkgs to v1.30`, `bootstrap: make argo install optional`, `docs: clarify tunnel steps`
+See each subfolder's README for full details (daily use, SSH tunnels, port-forwards, ArgoCD password, etc.).

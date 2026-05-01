@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-# Rebuild an Ubuntu 24.04 Lima VM and install kubeadm prerequisites.
+# lima/rebuild-lab.sh
+#
+# Tear down and recreate an Ubuntu 24.04 Lima VM, then provision kubeadm prerequisites.
+# Run bootstrap-cluster.sh afterwards to initialise Kubernetes.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SHARED_DIR="${SCRIPT_DIR}/../shared"
 
 VM_NAME="${VM_NAME:-k8s-lab}"
 TEMPLATE="${TEMPLATE:-template:ubuntu-24.04}"
@@ -37,7 +41,7 @@ limactl start -y \
   "${TEMPLATE}"
 
 log "Installing containerd + kubeadm/kubelet/kubectl inside the VM"
-limactl shell "${VM_NAME}" sudo bash -s < "${SCRIPT_DIR}/provision-kubeadm.sh"
+limactl shell "${VM_NAME}" sudo bash -s < "${SHARED_DIR}/provision-kubeadm.sh"
 
 log "Validating kubeadm"
 limactl shell "${VM_NAME}" kubeadm version
